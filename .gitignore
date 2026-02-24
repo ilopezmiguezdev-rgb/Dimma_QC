@@ -1,8 +1,12 @@
 node_modules
-dist
 .env
 .env.local
 .env.*.local
 .DS_Store
 *.log
 Data Migration/provision_users.py
+.claude
+research_public.md
+plan.md
+security_assessment.md
+statistics_assessment.md

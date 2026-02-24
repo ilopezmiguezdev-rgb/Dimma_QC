@@ -1,0 +1,16 @@
+## Pages
+- [- DIMMA QC](/equipmentdetail): No description available
+- [Configuración - DIMMA QC](/settings): Configuración del sistema DIMMA QC.
+- [Dashboard - DIMMA QC](/dashboard): Main dashboard for laboratory equipment quality control management.
+- [Equipos - DIMMA QC](/equipment): Gestión y monitoreo de equipos de laboratorio.
+- [Equipos - DIMMA QC](/qcsettings): No description available
+- [Estadísticas - QC LabControl](/statistics): Rendimiento de los equipos y estadísticas de control de calidad.
+- [Gestión de Muestras - LabClínico Pro](/samples): Centro de trabajo para la gestión y procesamiento de muestras de laboratorio.
+- [Historial de  - LabClínico Pro](/patienthistory): No description available
+- [Informe de  para  - LabClínico Pro](/resultdetail): No description available
+- [Iniciar Sesión - DIMMA QC](/login): Acceda al sistema de gestión de calidad del laboratorio.
+- [Integración de Equipos - LabClínico Pro](/integration): Interfaz para la integración y recepción de datos de equipos de laboratorio.
+- [Load Daily Control - DIMMA QC](/loadcontrol): No description available
+- [Pacientes - LabClínico Pro](/patients): Gestión completa de pacientes del laboratorio clínico con datos argentinos.
+- [Reportes - LabClínico Pro](/reports): Reportes y estadísticas visuales del laboratorio clínico.
+- [Resultados - DIMMA QC](/results): Gestión de resultados de análisis clínicos.
