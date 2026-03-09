@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   const fetchUserProfile = useCallback(async (authUser) => {
     if (!authUser) return null;
@@ -71,7 +72,10 @@ export const AuthProvider = ({ children }) => {
 
     getInitialSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecovery(true);
+      }
       if (mounted) await handleSession(session);
     });
 
@@ -111,6 +115,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, [toast]);
 
+  const clearPasswordRecovery = useCallback(() => setPasswordRecovery(false), []);
+
   const signOut = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -128,10 +134,12 @@ export const AuthProvider = ({ children }) => {
     user,
     session,
     loading,
+    passwordRecovery,
     signUp,
     signIn,
     signOut,
-  }), [user, session, loading, signUp, signIn, signOut]);
+    clearPasswordRecovery,
+  }), [user, session, loading, passwordRecovery, signUp, signIn, signOut, clearPasswordRecovery]);
 
   return (
     <AuthContext.Provider value={value}>

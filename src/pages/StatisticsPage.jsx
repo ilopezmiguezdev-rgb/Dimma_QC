@@ -6,7 +6,8 @@ import { useQCData } from '@/contexts/QCDataContext';
 import { supabase } from '@/lib/customSupabaseClient';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { Sliders, Loader2, RefreshCw } from 'lucide-react';
+import { Sliders, Loader2, RefreshCw, BarChart } from 'lucide-react';
+import { calculateStats } from '@/utils/qcStats';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -23,7 +24,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const StatisticsPage = () => {
-  const { equipment } = useQCData();
+  const { equipment, parameters } = useQCData();
   const { toast } = useToast();
 
   const [selectedEquipmentId, setSelectedEquipmentId] = useState(equipment[0]?.id || '');
@@ -115,6 +116,19 @@ const StatisticsPage = () => {
       r.level === selectedLevel
     );
   }, [fetchedReports, selectedLevel, activeLot]);
+
+  const statsByParam = useMemo(() => {
+    const qcParams = activeLot?.qc_params?.[selectedLevel];
+    if (!qcParams || filteredReports.length === 0) return {};
+
+    const results = {};
+    const relevantParams = parameters.filter(p => qcParams[p.name]);
+    relevantParams.forEach(p => {
+      const values = filteredReports.map(r => r.values[p.name]);
+      results[p.name] = { ...calculateStats(values), unit: qcParams[p.name]?.unit || '' };
+    });
+    return results;
+  }, [filteredReports, activeLot, selectedLevel, parameters]);
 
   const chartData = useMemo(() => filteredReports.map(report => ({
     date: new Date(report.date).toLocaleDateString('en-CA', { day: '2-digit', month: '2-digit' }),
@@ -234,6 +248,38 @@ const StatisticsPage = () => {
             </div>
           )}
         </motion.div>
+
+        {Object.keys(statsByParam).length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="medical-card rounded-xl p-6">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2 mb-4">
+              <BarChart className="w-5 h-5" /> Resumen Estadístico
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-secondary text-muted-foreground uppercase">
+                  <tr>
+                    <th className="py-2 px-4">Parámetro</th>
+                    <th className="py-2 px-4">N</th>
+                    <th className="py-2 px-4">Media (X&#772;)</th>
+                    <th className="py-2 px-4">SD</th>
+                    <th className="py-2 px-4">CV%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(statsByParam).map(([param, stats]) => (
+                    <tr key={param} className="border-b border-border">
+                      <td className="py-2 px-4 font-semibold">{param} ({stats.unit})</td>
+                      <td className="py-2 px-4">{stats.n}</td>
+                      <td className="py-2 px-4">{stats.n > 0 ? stats.mean.toFixed(2) : 'N/A'}</td>
+                      <td className="py-2 px-4">{stats.n > 0 ? stats.stdDev.toFixed(2) : 'N/A'}</td>
+                      <td className="py-2 px-4">{stats.n > 0 ? stats.cv.toFixed(2) + '%' : 'N/A'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
       </div>
     </>
   );

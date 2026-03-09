@@ -13,4 +13,5 @@
 - [Load Daily Control - DIMMA QC](/loadcontrol): No description available
 - [Pacientes - LabClínico Pro](/patients): Gestión completa de pacientes del laboratorio clínico con datos argentinos.
 - [Reportes - LabClínico Pro](/reports): Reportes y estadísticas visuales del laboratorio clínico.
+- [Restablecer Contraseña - DIMMA QC](/resetpassword): No description available
 - [Resultados - DIMMA QC](/results): Gestión de resultados de análisis clínicos.

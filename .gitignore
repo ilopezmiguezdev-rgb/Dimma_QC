@@ -5,7 +5,9 @@ node_modules
 .DS_Store
 *.log
 Data Migration/provision_users.py
-.claude
+.claude/
+Implementation/
+claude/
 research_public.md
 plan.md
 security_assessment.md

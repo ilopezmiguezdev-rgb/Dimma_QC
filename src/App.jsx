@@ -13,6 +13,7 @@ import SettingsPage from '@/pages/SettingsPage.jsx';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import LoadControlPage from '@/pages/LoadControlPage.jsx';
+import ResetPasswordPage from '@/pages/ResetPasswordPage.jsx';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Layout>
