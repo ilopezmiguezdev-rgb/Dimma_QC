@@ -266,7 +266,9 @@ const StatisticsPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(statsByParam).map(([param, stats]) => (
+                  {Object.entries(statsByParam)
+                  .filter(([param]) => !selectedParam || param === selectedParam)
+                  .map(([param, stats]) => (
                     <tr key={param} className="border-b border-border">
                       <td className="py-2 px-4 font-semibold">{param} ({stats.unit})</td>
                       <td className="py-2 px-4">{stats.n}</td>
