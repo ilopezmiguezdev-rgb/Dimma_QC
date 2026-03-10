@@ -162,6 +162,13 @@ const UserManagementPage = () => {
       }
       if (data?.error) throw new Error(data.error);
 
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ laboratory_id: formData.laboratoryId || null })
+        .eq('id', selectedUser.id);
+
+      if (profileError) throw profileError;
+
       toast({ title: 'Usuario actualizado', description: 'Los cambios han sido guardados.' });
       setIsEditOpen(false);
       resetForm();
