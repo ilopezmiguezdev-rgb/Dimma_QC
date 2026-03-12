@@ -30,7 +30,8 @@ const StatisticsPage = () => {
   const [selectedEquipmentId, setSelectedEquipmentId] = useState(equipment[0]?.id || '');
 
   const currentEquipment = useMemo(() => equipment.find(e => e.id === selectedEquipmentId), [equipment, selectedEquipmentId]);
-  const activeLot = useMemo(() => currentEquipment?.lots?.find(l => l.isActive), [currentEquipment]);
+  const allLots = useMemo(() => currentEquipment?.lots || [], [currentEquipment]);
+  const [selectedLot, setSelectedLot] = useState(null);
 
   const [selectedLevel, setSelectedLevel] = useState('');
   const [selectedParam, setSelectedParam] = useState('');
@@ -82,6 +83,11 @@ const StatisticsPage = () => {
     }
   }, [selectedEquipmentId, dateRange.start, dateRange.end, toast]);
 
+  useEffect(() => {
+    const active = allLots.find(l => l.isActive) || allLots[0] || null;
+    setSelectedLot(active);
+  }, [allLots]);
+
   // Effect to fetch reports when Equipment or Date Range changes
   useEffect(() => {
     fetchReports();
@@ -89,36 +95,36 @@ const StatisticsPage = () => {
 
 
   useEffect(() => {
-    if (activeLot && activeLot.qc_params) {
-      const firstLevel = Object.keys(activeLot.qc_params)[0];
+    if (selectedLot && selectedLot.qc_params) {
+      const firstLevel = Object.keys(selectedLot.qc_params)[0];
       setSelectedLevel(firstLevel || '');
       if (firstLevel) {
-        const firstParam = Object.keys(activeLot.qc_params[firstLevel] || {})[0];
+        const firstParam = Object.keys(selectedLot.qc_params[firstLevel] || {})[0];
         setSelectedParam(firstParam || '');
       }
     } else {
       setSelectedLevel('');
       setSelectedParam('');
     }
-  }, [activeLot]);
+  }, [selectedLot]);
 
   const handleEquipmentChange = (id) => {
     setSelectedEquipmentId(id);
   };
 
   const filteredReports = useMemo(() => {
-    if (!activeLot) return [];
+    if (!selectedLot) return [];
 
     // We already filtered by date and equipment in the fetch.
     // Now we filter by LOT and LEVEL.
     return fetchedReports.filter(r =>
-      r.lotNumber === activeLot.lotNumber &&
+      r.lotNumber === selectedLot.lotNumber &&
       r.level === selectedLevel
     );
-  }, [fetchedReports, selectedLevel, activeLot]);
+  }, [fetchedReports, selectedLevel, selectedLot]);
 
   const statsByParam = useMemo(() => {
-    const qcParams = activeLot?.qc_params?.[selectedLevel];
+    const qcParams = selectedLot?.qc_params?.[selectedLevel];
     if (!qcParams || filteredReports.length === 0) return {};
 
     const results = {};
@@ -128,7 +134,7 @@ const StatisticsPage = () => {
       results[p.name] = { ...calculateStats(values), unit: qcParams[p.name]?.unit || '' };
     });
     return results;
-  }, [filteredReports, activeLot, selectedLevel, parameters]);
+  }, [filteredReports, selectedLot, selectedLevel, parameters]);
 
   const chartData = useMemo(() => filteredReports.map(report => ({
     date: new Date(report.date).toLocaleDateString('en-CA', { day: '2-digit', month: '2-digit' }),
@@ -137,7 +143,7 @@ const StatisticsPage = () => {
   })), [filteredReports, selectedParam]);
 
   const qcRef = useMemo(() => {
-    const raw = activeLot?.qc_params?.[selectedLevel]?.[selectedParam];
+    const raw = selectedLot?.qc_params?.[selectedLevel]?.[selectedParam];
     if (!raw) return null;
     const mean = parseFloat(raw.mean);
     const sd = parseFloat(raw.sd);
@@ -152,7 +158,7 @@ const StatisticsPage = () => {
       plus3s: mean + 3 * sd,
       minus3s: mean - 3 * sd,
     };
-  }, [activeLot, selectedLevel, selectedParam]);
+  }, [selectedLot, selectedLevel, selectedParam]);
 
   const yDomain = useMemo(() => {
     if (!qcRef || chartData.length === 0) return undefined;
@@ -187,20 +193,37 @@ const StatisticsPage = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="medical-card rounded-xl p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <select value={selectedEquipmentId} onChange={(e) => handleEquipmentChange(e.target.value)} className="p-2 border border-border rounded-md w-full">
               <option value="" disabled>Seleccionar Equipo</option>
               {equipment.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
             </select>
 
-            <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} className="p-2 border border-border rounded-md w-full" disabled={!activeLot}>
+            <select
+              value={selectedLot?.id || ''}
+              onChange={(e) => {
+                const lot = allLots.find(l => l.id === e.target.value);
+                setSelectedLot(lot || null);
+              }}
+              className="p-2 border border-border rounded-md w-full"
+              disabled={allLots.length === 0}
+            >
+              <option value="" disabled>Lote</option>
+              {allLots.map(l => (
+                <option key={l.id} value={l.id}>
+                  {l.lotNumber}{l.isActive ? ' (Activo)' : ''}
+                </option>
+              ))}
+            </select>
+
+            <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} className="p-2 border border-border rounded-md w-full" disabled={!selectedLot}>
               <option value="" disabled>Nivel</option>
-              {activeLot && activeLot.qc_params && Object.keys(activeLot.qc_params).map(level => <option key={level} value={level}>{level}</option>)}
+              {selectedLot && selectedLot.qc_params && Object.keys(selectedLot.qc_params).map(level => <option key={level} value={level}>{level}</option>)}
             </select>
 
             <select value={selectedParam} onChange={(e) => setSelectedParam(e.target.value)} className="p-2 border border-border rounded-md w-full" disabled={!selectedLevel}>
               <option value="" disabled>Parámetro</option>
-              {activeLot && activeLot.qc_params && activeLot.qc_params[selectedLevel] && Object.keys(activeLot.qc_params[selectedLevel]).map(param => <option key={param} value={param}>{param}</option>)}
+              {selectedLot && selectedLot.qc_params && selectedLot.qc_params[selectedLevel] && Object.keys(selectedLot.qc_params[selectedLevel]).map(param => <option key={param} value={param}>{param}</option>)}
             </select>
 
             <div className="flex items-center gap-2">
@@ -266,7 +289,9 @@ const StatisticsPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(statsByParam).map(([param, stats]) => (
+                  {Object.entries(statsByParam)
+                  .filter(([param]) => !selectedParam || param === selectedParam)
+                  .map(([param, stats]) => (
                     <tr key={param} className="border-b border-border">
                       <td className="py-2 px-4 font-semibold">{param} ({stats.unit})</td>
                       <td className="py-2 px-4">{stats.n}</td>

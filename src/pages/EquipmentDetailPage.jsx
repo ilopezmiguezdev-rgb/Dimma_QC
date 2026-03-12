@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 
-const StatsTable = ({ reports, qcParams, parameters }) => {
+const StatsTable = ({ reports, qcParams, parameters, selectedParam }) => {
   const [isOpen, setIsOpen] = useState(true);
   const statsByParam = useMemo(() => {
     if (!qcParams) return {};
@@ -60,7 +60,7 @@ const StatsTable = ({ reports, qcParams, parameters }) => {
               </tr>
             </thead>
             <tbody>
-              {parameters.filter(p => qcParams[p.name]).map(p => {
+              {parameters.filter(p => qcParams[p.name] && (!selectedParam || p.name === selectedParam)).map(p => {
                 const param = p.name;
                 const stats = statsByParam[param];
                 if (!stats) return null;
@@ -519,7 +519,7 @@ const EquipmentDetailPage = () => {
               </div>
             </div>
 
-            {selectedLevel && activeLot.qc_params[selectedLevel] && <StatsTable reports={equipmentReports} qcParams={activeLot.qc_params[selectedLevel]} parameters={parameters} />}
+            {selectedLevel && activeLot.qc_params[selectedLevel] && <StatsTable reports={equipmentReports} qcParams={activeLot.qc_params[selectedLevel]} parameters={parameters} selectedParam={selectedParam} />}
 
             <div className="medical-card rounded-xl p-6">
               <h2 className="text-xl font-bold text-foreground mb-4">Historial de Controles (Lote Actual)</h2>

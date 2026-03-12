@@ -105,7 +105,7 @@ const UserManagementPage = () => {
 
     try {
       // 1. Create Auth User
-      const { data, error } = await supabase.functions.invoke('create-user', {
+      const { data, error } = await supabase.functions.invoke('create-app-user', {
         headers: { 'Authorization': `Bearer ${session.access_token}` },
         body: {
           email: formData.email,
@@ -115,12 +115,10 @@ const UserManagementPage = () => {
         }
       });
 
-
-
       if (error || data.error) throw new Error(error?.message || data.error);
 
       // 2. Assign Laboratory (Update Profile)
-      const newUserId = data.user?.id || data.id;
+      const newUserId = data.user?.id;
       if (newUserId) {
         const { error: profileError } = await supabase
           .from('profiles')
@@ -148,19 +146,35 @@ const UserManagementPage = () => {
         body: {
           userId: selectedUser.id,
           role: formData.role,
-          laboratoryId: formData.laboratoryId,
-          fullName: formData.fullName,
-          password: formData.password || undefined // Only send if changed
+          laboratoryIds: formData.laboratoryId ? [formData.laboratoryId] : [],
+          name: formData.fullName,
         }
       });
 
-      if (error || data.error) throw new Error(error?.message || data.error);
+      if (error) {
+        // Extract actual error body from FunctionsHttpError
+        let msg = error.message;
+        try {
+          const errBody = await error.context?.json();
+          if (errBody?.error) msg = errBody.error;
+        } catch {}
+        throw new Error(msg);
+      }
+      if (data?.error) throw new Error(data.error);
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ laboratory_id: formData.laboratoryId || null })
+        .eq('id', selectedUser.id);
+
+      if (profileError) throw profileError;
 
       toast({ title: 'Usuario actualizado', description: 'Los cambios han sido guardados.' });
       setIsEditOpen(false);
       resetForm();
       fetchAllData();
     } catch (error) {
+      console.error('Update user error:', error);
       toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message });
     }
   };

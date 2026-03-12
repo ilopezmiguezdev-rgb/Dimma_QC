@@ -156,21 +156,35 @@ const UsersSettingsTab = () => {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-user', {
+      const { data, error } = await supabase.functions.invoke('create-app-user', {
         headers: { 'Authorization': `Bearer ${session.access_token}` },
         body: {
           fullName: newUser.fullName,
           email: newUser.email,
           password: newUser.password,
           role: newUser.role,
-          laboratoryIds: newUser.laboratoryIds,
         },
       });
 
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      toast({ title: 'Usuario creado', description: `${newUser.fullName} fue creado. Se requiere autorización.` });
+      const newUserId = data.user?.id;
+      if (newUserId && newUser.laboratoryIds.length > 0) {
+        const labInserts = newUser.laboratoryIds.map(labId => ({
+          user_id: newUserId,
+          laboratory_id: labId,
+        }));
+        const { error: labError } = await supabase
+          .from('user_laboratories')
+          .insert(labInserts);
+        if (labError) {
+          console.error('Lab assignment failed:', labError);
+          toast({ variant: 'destructive', title: 'Advertencia', description: 'Usuario creado pero falló la asignación de laboratorios.' });
+        }
+      }
+
+      toast({ title: 'Usuario creado', description: `${newUser.fullName} fue creado exitosamente.` });
       setNewUser(EMPTY_FORM);
       setIsCreateOpen(false);
       fetchUsers();
