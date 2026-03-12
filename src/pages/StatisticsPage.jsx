@@ -193,7 +193,7 @@ const StatisticsPage = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="medical-card rounded-xl p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
             <select value={selectedEquipmentId} onChange={(e) => handleEquipmentChange(e.target.value)} className="p-2 border border-border rounded-md w-full">
               <option value="" disabled>Seleccionar Equipo</option>
               {equipment.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
@@ -226,10 +226,8 @@ const StatisticsPage = () => {
               {selectedLot && selectedLot.qc_params && selectedLot.qc_params[selectedLevel] && Object.keys(selectedLot.qc_params[selectedLevel]).map(param => <option key={param} value={param}>{param}</option>)}
             </select>
 
-            <div className="flex items-center gap-2">
-              <input type="date" value={dateRange.start} onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))} className="p-2 border border-border rounded-md w-full" />
-              <input type="date" value={dateRange.end} onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))} className="p-2 border border-border rounded-md w-full" />
-            </div>
+            <input type="date" value={dateRange.start} onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))} className="p-2 border border-border rounded-md w-full" />
+            <input type="date" value={dateRange.end} onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))} className="p-2 border border-border rounded-md w-full" />
           </div>
 
           {loadingReports ? (
