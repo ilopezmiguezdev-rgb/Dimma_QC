@@ -1,3 +1,16 @@
+export const calculateTotalError = (labMean, targetValue, cvPercent, sd) => {
+  if (targetValue === 0 || targetValue == null || labMean == null || cvPercent == null) {
+    return null;
+  }
+  const biasPercent = (Math.abs(labMean - targetValue) / targetValue) * 100;
+  const randomErrorPercent = 1.65 * cvPercent;
+  const totalErrorPercent = biasPercent + randomErrorPercent;
+  const biasAbsolute = Math.abs(labMean - targetValue);
+  const randomErrorAbsolute = 1.65 * (sd ?? 0);
+  const totalErrorAbsolute = biasAbsolute + randomErrorAbsolute;
+  return { biasPercent, randomErrorPercent, totalErrorPercent, biasAbsolute, randomErrorAbsolute, totalErrorAbsolute };
+};
+
 export const calculateStats = (data) => {
   const validData = data
     .filter(v => v !== 'N/A' && v !== null && v !== undefined)

@@ -8,7 +8,8 @@ import LaboratoriesPage from '@/pages/LaboratoriesPage';
 import ParametrosPorEquipoPage from '@/pages/ParametrosPorEquipoPage';
 import UserManagementPage from '@/pages/UserManagementPage'; // New component
 import QCSettingsPage from '@/pages/QCSettingsPage';
-import { Sliders as FileSliders, Users, Shield, Settings, Building2, CircuitBoard, UserCog } from 'lucide-react';
+import { Sliders as FileSliders, Users, Shield, Settings, Building2, CircuitBoard, UserCog, Target } from 'lucide-react';
+import ParameterGoalsTab from '@/components/settings/ParameterGoalsTab';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 const SettingsPage = () => {
@@ -21,6 +22,7 @@ const SettingsPage = () => {
         { value: 'params-equip', icon: CircuitBoard, label: 'Parámetros por Equipo', component: <ParametrosPorEquipoPage />, adminOnly: true },
         { value: 'users-admin', icon: UserCog, label: 'Usuarios', component: <UserManagementPage />, adminOnly: true }, // New Tab
         { value: 'equipos-lotes', icon: FileSliders, label: 'Config. Equipos', component: <QCSettingsPage isTab={true} />, adminOnly: true },
+        { value: 'quality-goals', icon: Target, label: 'Metas de Calidad', component: <ParameterGoalsTab />, adminOnly: true },
         { value: 'general', icon: Settings, label: 'General', component: <GeneralSettingsTab />, adminOnly: true },
         { value: 'security', icon: Shield, label: 'Seguridad', component: <SecuritySettingsTab />, adminOnly: false },
     ];
