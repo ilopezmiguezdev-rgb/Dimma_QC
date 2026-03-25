@@ -36,7 +36,7 @@ const ParameterQualityTable = ({ statsByParam, context }) => {
           ? s.metaClia + (isAbsolute ? ' ' + s.unit : '%')
           : '—';
         const statusLabel = s.etStatus === 'green' ? 'Cumple'
-          : s.etStatus === 'yellow' ? 'Excede EFLM' : 'Excede CLIA';
+          : s.etStatus === 'yellow' ? 'No cumple una meta' : 'No cumple ambas metas';
 
         return [
           param,
@@ -53,8 +53,8 @@ const ParameterQualityTable = ({ statsByParam, context }) => {
         if (data.section === 'body' && data.column.index === 7) {
           const val = data.cell.raw;
           if (val === 'Cumple') data.cell.styles.textColor = [34, 139, 34];
-          else if (val === 'Excede EFLM') data.cell.styles.textColor = [204, 163, 0];
-          else if (val === 'Excede CLIA') data.cell.styles.textColor = [220, 38, 38];
+          else if (val === 'No cumple una meta') data.cell.styles.textColor = [204, 163, 0];
+          else if (val === 'No cumple ambas metas') data.cell.styles.textColor = [220, 38, 38];
         }
       },
     });

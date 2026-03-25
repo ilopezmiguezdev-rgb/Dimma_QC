@@ -137,14 +137,17 @@ const StatisticsPage = () => {
       const etResult = calculateTotalError(stats.mean, targetValue, stats.cv, stats.stdDev);
 
       let etStatus = null;
-      if (etResult && p.meta_clia != null) {
-        const cliaOk = p.meta_clia_type === 'absolute'
-          ? etResult.totalErrorAbsolute <= p.meta_clia
-          : etResult.totalErrorPercent <= p.meta_clia;
+      if (etResult && (p.meta_clia != null || p.meta_eflm != null)) {
+        const cliaOk = p.meta_clia == null || (
+          p.meta_clia_type === 'absolute'
+            ? etResult.totalErrorAbsolute <= p.meta_clia
+            : etResult.totalErrorPercent <= p.meta_clia
+        );
         const eflmOk = p.meta_eflm == null || etResult.totalErrorPercent <= p.meta_eflm;
-        if (!cliaOk) etStatus = 'red';
-        else if (!eflmOk) etStatus = 'yellow';
-        else etStatus = 'green';
+        const failCount = (!cliaOk ? 1 : 0) + (!eflmOk ? 1 : 0);
+        if (failCount === 0) etStatus = 'green';
+        else if (failCount === 1) etStatus = 'yellow';
+        else etStatus = 'red';
       }
 
       results[p.name] = {
@@ -330,7 +333,7 @@ const StatisticsPage = () => {
                             stats.etStatus === 'yellow' ? 'bg-yellow-400' : 'bg-red-500'
                           }`} title={
                             stats.etStatus === 'green' ? 'Cumple EFLM y CLIA' :
-                            stats.etStatus === 'yellow' ? 'Excede EFLM, cumple CLIA' : 'Excede CLIA'
+                            stats.etStatus === 'yellow' ? 'No cumple una meta' : 'No cumple EFLM ni CLIA'
                           } />
                         ) : (
                           <span className="text-muted-foreground text-xs">—</span>
