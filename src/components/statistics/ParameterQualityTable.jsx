@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { FileDown, ShieldCheck } from 'lucide-react';
@@ -6,9 +6,15 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const ParameterQualityTable = ({ statsByParam, context }) => {
+  const [showOnlyRed, setShowOnlyRed] = useState(false);
+
   const paramsWithET = Object.entries(statsByParam).filter(([, s]) => s.etStatus != null);
-  const alertParams = paramsWithET.filter(([, s]) => s.etStatus === 'yellow' || s.etStatus === 'red');
+  const alertParams = paramsWithET.filter(([, s]) => s.etStatus === 'red');
   const hasAlerts = alertParams.length > 0;
+
+  const displayParams = showOnlyRed
+    ? paramsWithET.filter(([, s]) => s.etStatus === 'red')
+    : paramsWithET;
 
   if (paramsWithET.length === 0) return null;
 
@@ -25,7 +31,7 @@ const ParameterQualityTable = ({ statsByParam, context }) => {
     autoTable(doc, {
       startY: 48,
       head: [['Parámetro', 'Valor Diana', 'Sesgo%', 'Error Aleat.', 'Error Total', 'Meta EFLM', 'Meta CLIA', 'Estado']],
-      body: paramsWithET.map(([param, s]) => {
+      body: displayParams.map(([param, s]) => {
         const isAbsolute = s.metaCliaType === 'absolute';
         const etDisplay = s.et
           ? isAbsolute
@@ -68,10 +74,30 @@ const ParameterQualityTable = ({ statsByParam, context }) => {
         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
           <ShieldCheck className="w-5 h-5" /> Detalle de Error Total
         </h2>
-        <Button onClick={handleExportPDF} variant="outline" size="sm">
-          <FileDown className="w-4 h-4 mr-2" />
-          Exportar PDF
-        </Button>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+            <span>Solo alertas</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showOnlyRed}
+              onClick={() => setShowOnlyRed(prev => !prev)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                showOnlyRed ? 'bg-red-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                  showOnlyRed ? 'translate-x-[18px]' : 'translate-x-[3px]'
+                }`}
+              />
+            </button>
+          </label>
+          <Button onClick={handleExportPDF} variant="outline" size="sm">
+            <FileDown className="w-4 h-4 mr-2" />
+            Exportar PDF
+          </Button>
+        </div>
       </div>
 
       {hasAlerts && (
@@ -95,7 +121,7 @@ const ParameterQualityTable = ({ statsByParam, context }) => {
             </tr>
           </thead>
           <tbody>
-            {paramsWithET.map(([param, s]) => {
+            {displayParams.map(([param, s]) => {
               const isAbsolute = s.metaCliaType === 'absolute';
               const etDisplay = s.et
                 ? isAbsolute
