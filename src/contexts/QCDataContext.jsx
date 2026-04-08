@@ -655,6 +655,17 @@ export const QCDataProvider = ({ children }) => {
     }
   };
 
+  const deleteQCReport = async (reportId) => {
+    try {
+      const { error } = await supabase.from('qc_reports').delete().eq('id', reportId);
+      if (error) throw error;
+    } catch (err) {
+      console.error("Error deleting QC report:", err);
+      toast({ title: "Error", description: "No se pudo eliminar el reporte de QC.", variant: "destructive" });
+      throw err;
+    }
+  };
+
   const deleteLot = async (equipmentId, lotId) => {
     try {
       const { error } = await supabase.from('control_lots').delete().eq('id', lotId);
@@ -725,6 +736,7 @@ export const QCDataProvider = ({ children }) => {
     updateLotParams,
     updateEquipmentDetails,
     deleteEquipment,
+    deleteQCReport,
     deleteLot,
     updateLotDetails,
     refetch: fetchAllData,
