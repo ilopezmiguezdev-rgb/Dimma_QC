@@ -657,8 +657,9 @@ export const QCDataProvider = ({ children }) => {
 
   const deleteQCReport = async (reportId) => {
     try {
-      const { error } = await supabase.from('qc_reports').delete().eq('id', reportId);
+      const { data, error } = await supabase.from('qc_reports').delete().eq('id', reportId).select();
       if (error) throw error;
+      if (!data || data.length === 0) throw new Error('No rows deleted — possible RLS restriction');
     } catch (err) {
       console.error("Error deleting QC report:", err);
       toast({ title: "Error", description: "No se pudo eliminar el reporte de QC.", variant: "destructive" });

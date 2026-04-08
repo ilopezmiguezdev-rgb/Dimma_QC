@@ -98,7 +98,8 @@ const UserManagementPage = () => {
   }, [session]);
 
   const handleCreateUser = async () => {
-    if (!formData.email || !formData.password || !formData.laboratoryId || !formData.fullName) {
+    const labRequired = formData.role !== 'admin';
+    if (!formData.email || !formData.password || !formData.fullName || (labRequired && !formData.laboratoryId)) {
       toast({ variant: 'destructive', title: 'Error', description: 'Email, nombre completo, contraseña y laboratorio son requeridos.' });
       return;
     }
@@ -122,7 +123,7 @@ const UserManagementPage = () => {
       if (newUserId) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ laboratory_id: formData.laboratoryId })
+          .update({ laboratory_id: formData.role === 'admin' ? null : (formData.laboratoryId || null) })
           .eq('id', newUserId);
 
         if (profileError) throw profileError;
@@ -146,7 +147,7 @@ const UserManagementPage = () => {
         body: {
           userId: selectedUser.id,
           role: formData.role,
-          laboratoryIds: formData.laboratoryId ? [formData.laboratoryId] : [],
+          laboratoryIds: formData.role === 'admin' ? [] : (formData.laboratoryId ? [formData.laboratoryId] : []),
           name: formData.fullName,
         }
       });
@@ -164,7 +165,7 @@ const UserManagementPage = () => {
 
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ laboratory_id: formData.laboratoryId || null })
+        .update({ laboratory_id: formData.role === 'admin' ? null : (formData.laboratoryId || null) })
         .eq('id', selectedUser.id);
 
       if (profileError) throw profileError;
@@ -206,7 +207,7 @@ const UserManagementPage = () => {
       fullName: user.user_metadata?.full_name || '',
       password: '', // Blank by default
       role: user.user_metadata?.role || 'technician',
-      laboratoryId: user.laboratoryId || ''
+      laboratoryId: user.user_metadata?.role === 'admin' ? 'all' : (user.laboratoryId || '')
     });
     setIsEditOpen(true);
   };
@@ -270,7 +271,7 @@ const UserManagementPage = () => {
                 <TableCell>
                   <div className="flex items-center text-sm">
                     <Building2 className="w-3 h-3 mr-2 text-gray-500" />
-                    {getLabName(u.laboratoryId)}
+                    {u.user_metadata?.role === 'admin' ? 'Todos los laboratorios' : getLabName(u.laboratoryId)}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -340,7 +341,7 @@ const UserManagementPage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Rol</label>
-                <Select value={formData.role} onValueChange={v => setFormData({ ...formData, role: v })}>
+                <Select value={formData.role} onValueChange={v => setFormData({ ...formData, role: v, laboratoryId: v === 'admin' ? 'all' : formData.laboratoryId })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="technician">Técnico</SelectItem>
@@ -351,14 +352,18 @@ const UserManagementPage = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Laboratorio</label>
-                <Select value={formData.laboratoryId} onValueChange={v => setFormData({ ...formData, laboratoryId: v })}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>
-                    {laboratories.map(lab => (
-                      <SelectItem key={lab.id} value={lab.id}>{lab.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {formData.role === 'admin' ? (
+                  <Input value="Todos los laboratorios" disabled className="bg-gray-100" />
+                ) : (
+                  <Select value={formData.laboratoryId} onValueChange={v => setFormData({ ...formData, laboratoryId: v })}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                    <SelectContent>
+                      {laboratories.map(lab => (
+                        <SelectItem key={lab.id} value={lab.id}>{lab.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
           </div>
@@ -406,7 +411,7 @@ const UserManagementPage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Rol</label>
-                <Select value={formData.role} onValueChange={v => setFormData({ ...formData, role: v })}>
+                <Select value={formData.role} onValueChange={v => setFormData({ ...formData, role: v, laboratoryId: v === 'admin' ? 'all' : formData.laboratoryId })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="technician">Técnico</SelectItem>
@@ -417,14 +422,18 @@ const UserManagementPage = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Laboratorio</label>
-                <Select value={formData.laboratoryId} onValueChange={v => setFormData({ ...formData, laboratoryId: v })}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>
-                    {laboratories.map(lab => (
-                      <SelectItem key={lab.id} value={lab.id}>{lab.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {formData.role === 'admin' ? (
+                  <Input value="Todos los laboratorios" disabled className="bg-gray-100" />
+                ) : (
+                  <Select value={formData.laboratoryId} onValueChange={v => setFormData({ ...formData, laboratoryId: v })}>
+                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                    <SelectContent>
+                      {laboratories.map(lab => (
+                        <SelectItem key={lab.id} value={lab.id}>{lab.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
           </div>
