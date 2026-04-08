@@ -372,10 +372,10 @@ const Dashboard = () => {
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
                                   <AlertDialogAction
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                    onClick={() => handleDeleteReport(report.id)}
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteReport(report.id); }}
                                   >
                                     Eliminar
                                   </AlertDialogAction>
