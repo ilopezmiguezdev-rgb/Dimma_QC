@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { SlidersHorizontal, CheckCircle, AlertTriangle, Wrench, Calendar, BarChart3, Loader2, Check, Clock, Eye, Pencil } from 'lucide-react';
+import { SlidersHorizontal, CheckCircle, AlertTriangle, Wrench, Calendar, BarChart3, Loader2, Check, Clock, Eye, Pencil, Trash2 } from 'lucide-react';
 import { useQCData } from '@/contexts/QCDataContext';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
@@ -16,6 +16,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -26,7 +37,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
-  const { equipment, validateQCReport } = useQCData();
+  const { equipment, validateQCReport, deleteQCReport } = useQCData();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -125,6 +136,16 @@ const Dashboard = () => {
       lotId: lot?.id
     });
     setIsEditModalOpen(true);
+  };
+
+  const handleDeleteReport = async (reportId) => {
+    try {
+      await deleteQCReport(reportId);
+      setPendingReports(prev => prev.filter(r => r.id !== reportId));
+      toast({ title: "Reporte Eliminado", description: "El reporte ha sido eliminado correctamente." });
+    } catch {
+      // error toast is shown by the context
+    }
   };
 
   const handleValidate = async (reportId) => {
@@ -331,6 +352,36 @@ const Dashboard = () => {
                             >
                               <Pencil className="w-4 h-4" />
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="h-8 w-8 text-red-500"
+                                  title="Eliminar reporte"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Eliminar reporte?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. El reporte de control será eliminado permanentemente.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    onClick={() => handleDeleteReport(report.id)}
+                                  >
+                                    Eliminar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                             <Button
                               size="sm"
                               onClick={(e) => {

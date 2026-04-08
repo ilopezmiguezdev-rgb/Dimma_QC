@@ -7,6 +7,7 @@ export const hasPermission = (user, action) => {
     switch (action) {
         case 'validate_results':
         case 'manage_lots':
+        case 'delete_qc_report':
             return role === 'biochemist';
 
         case 'create_user':

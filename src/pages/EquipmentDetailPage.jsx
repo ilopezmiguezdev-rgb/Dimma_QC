@@ -84,7 +84,7 @@ const StatsTable = ({ reports, qcParams, parameters, selectedParam }) => {
 
 const EquipmentDetailPage = () => {
   const { equipmentId } = useParams();
-  const { equipment, addQCReport, updateEquipmentDetails, deleteEquipment, parameters, loading: contextLoading } = useQCData();
+  const { equipment, addQCReport, updateEquipmentDetails, deleteEquipment, parameters, loading: contextLoading, deleteQCReport } = useQCData();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -267,6 +267,16 @@ const EquipmentDetailPage = () => {
     }
   };
 
+  const handleDeleteReport = async (reportId) => {
+    try {
+      await deleteQCReport(reportId);
+      setReports(prev => prev.filter(r => r.id !== reportId));
+      toast({ title: "Reporte Eliminado", description: "El reporte ha sido eliminado." });
+    } catch {
+      // error toast shown by context
+    }
+  };
+
   const getStatusInfo = (status) => {
     switch (status) {
       case 'ok': return { text: 'OK', icon: CheckCircle, color: 'text-green-600' };
@@ -318,6 +328,7 @@ const EquipmentDetailPage = () => {
   const yAxisLabel = qcParamsForChart?.unit ? { value: qcParamsForChart.unit, angle: -90, position: 'insideLeft', offset: 10 } : null;
   const canDeleteEquipment = hasPermission(user, 'delete_equipment');
   const isAdmin = user?.user_metadata?.role === 'admin';
+  const canManageReport = hasPermission(user, 'delete_qc_report');
 
   return (
     <>
@@ -534,7 +545,7 @@ const EquipmentDetailPage = () => {
                         <th className="py-2 px-4">Estado</th>
                         <th className="py-2 px-4">Etapa</th>
                         <th className="py-2 px-4">Reglas Westgard</th>
-                        {isAdmin && <th className="py-2 px-4">Acciones</th>}
+                        {canManageReport && <th className="py-2 px-4">Acciones</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -555,11 +566,35 @@ const EquipmentDetailPage = () => {
                               )}
                             </td>
                             <td className="py-2 px-4 text-red-600">{(report.westgardRules || []).join(', ')}</td>
-                            {isAdmin && (
-                              <td className="py-2 px-4">
+                            {canManageReport && (
+                              <td className="py-2 px-4 flex items-center gap-1">
                                 <Button variant="ghost" size="icon" onClick={() => setEditingReport(report)}>
                                   <Pencil className="w-4 h-4" />
                                 </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700">
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>¿Eliminar reporte?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. El reporte de control será eliminado permanentemente.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        onClick={() => handleDeleteReport(report.id)}
+                                      >
+                                        Eliminar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </td>
                             )}
                           </tr>
